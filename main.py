@@ -36,10 +36,10 @@ def get_report(filenames: List[str], report_name: str) -> Dict | None:
                     return None
         except FileNotFoundError as e:
             print(e)
-        if report_name == 'average':
-            for item in report:
-                report[item]['time'] = str(round(report[item]['time'] /
-                                                 report[item]['count'], 3))
+    if report_name == 'average':
+        for item in report:
+            report[item]['time'] = str(round(report[item]['time'] /
+                                             report[item]['count'], 3))
     return report
 
 

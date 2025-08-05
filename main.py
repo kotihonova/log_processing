@@ -6,12 +6,9 @@ from tabulate import tabulate
 
 
 def get_log_item(filename: str) -> Generator:
-    try:
-        with open(filename, 'r') as file:
-            for line in file:
-                yield json.loads(line.strip())
-    except FileNotFoundError as e:
-        print(e)
+    with open(filename, 'r') as file:
+        for line in file:
+            yield json.loads(line.strip())
 
 
 def generate_average_report(logs_item: Dict, report: Dict):
@@ -30,22 +27,27 @@ def generate_average_report(logs_item: Dict, report: Dict):
 def get_report(filenames: List[str], report_name: str) -> Dict | None:
     report = {}
     for filename in filenames:
-        for logs_item in get_log_item(filename):
-            if report_name == 'average':
-                report.update(generate_average_report(logs_item=logs_item, report=report))
-            else:
-                print('Report name not found', file=sys.stderr)
-                return None
+        try:
+            for logs_item in get_log_item(filename):
+                if report_name == 'average':
+                    report.update(generate_average_report(logs_item=logs_item, report=report))
+                else:
+                    print('Report name not found', file=sys.stderr)
+                    return None
+        except FileNotFoundError as e:
+            print(e)
         if report_name == 'average':
             for item in report:
-                report[item]['time'] = str(round(report[item]['time'] / report[item]['count'], 3))
+                report[item]['time'] = str(round(report[item]['time'] /
+                                                 report[item]['count'], 3))
     return report
 
 
 def get_report_for_table(full_logs) -> List[List]:
     sorted_report = sorted(full_logs.items(),
                            key=lambda x: x[1]['count'], reverse=True)
-    report_for_table = [[item[0], item[1]['count'], item[1]['time']] for item in sorted_report]
+    report_for_table = [[item[0], item[1]['count'], item[1]['time']]
+                        for item in sorted_report]
     return report_for_table
 
 

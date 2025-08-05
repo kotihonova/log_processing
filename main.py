@@ -1,48 +1,46 @@
 import argparse
 import sys
-from typing import Dict, List
+from typing import List, Generator, Dict
 import json
 from tabulate import tabulate
 
 
-def get_full_logs(files: List[str]) -> List:
-    logs = list()
+def get_log_item(files: List[str]) -> Generator:
     for filename in files:
         try:
             with open(filename, 'r') as file:
-                content = file.read()
-                logs += parse_content(content)
+                for line in file:
+                    yield json.loads(line.strip())
         except FileNotFoundError as e:
             print(e)
-    return logs
 
-
-def parse_content(data) -> List:
-    lines = data.strip().split('\n')
-    logs = [json.loads(line.strip()) for line in lines]
-    return logs
-
-
-def generate_average_report(data) -> Dict:
+def generate_average_report(filenames: List[str]):
     report = {}
-    for item in data:
-        url = item['url'].split('?')[0]
+    for logs_item in get_log_item(filenames):
+        url = logs_item['url'].split('?')[0]
         if url not in report:
             report[url] = {
                 'count': 1,
-                'time': item['response_time']
+                'time': logs_item['response_time']
             }
         else:
             report[url]['count'] += 1
-            report[url]['time'] += item['response_time']
-
+            report[url]['time'] += logs_item['response_time']
     for item in report:
         report[item]['time'] = str(round(report[item]['time'] / report[item]['count'], 3))
     return report
 
+def get_report(filenames: List[str], report_name: str) -> Dict | None:
+    if report_name == 'average':
+        average_report = generate_average_report(filenames)
+        return average_report
+    print('Report name not found', file=sys.stderr)
+    return None
 
-def get_report_for_table(data) -> List[List]:
-    sorted_report = sorted(generate_average_report(full_logs).items(),
+
+
+def get_report_for_table(full_logs) -> List[List]:
+    sorted_report = sorted(full_logs.items(),
                            key=lambda x: x[1]['count'], reverse=True)
     report_for_table = [[item[0], item[1]['count'], item[1]['time']] for item in sorted_report]
     return report_for_table
@@ -56,9 +54,6 @@ if __name__ == '__main__':
     parser.add_argument('-r', '--report')
     args = parser.parse_args()
 
-    full_logs = get_full_logs(args.filename)
-
-    if args.report == 'average':
-        print(tabulate(get_report_for_table(full_logs)))
-    else:
-        print('Report name not found', file=sys.stderr)
+    full_report = get_report(args.filename, args.report)
+    if full_report:
+        print(tabulate(get_report_for_table(full_report)))

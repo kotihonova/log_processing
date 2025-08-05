@@ -14,6 +14,7 @@ def get_log_item(files: List[str]) -> Generator:
         except FileNotFoundError as e:
             print(e)
 
+
 def generate_average_report(filenames: List[str]):
     report = {}
     for logs_item in get_log_item(filenames):
@@ -30,13 +31,13 @@ def generate_average_report(filenames: List[str]):
         report[item]['time'] = str(round(report[item]['time'] / report[item]['count'], 3))
     return report
 
+
 def get_report(filenames: List[str], report_name: str) -> Dict | None:
     if report_name == 'average':
         average_report = generate_average_report(filenames)
         return average_report
     print('Report name not found', file=sys.stderr)
     return None
-
 
 
 def get_report_for_table(full_logs) -> List[List]:

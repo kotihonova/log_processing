@@ -17,7 +17,7 @@ def test_get_key_contains_only_hex_chars_v2(get_key_test_data):
 
 def test_get_key_result_has_correct_length_v2(get_key_test_data):
     input_string, result = get_key_test_data
-    assert len(result) == len(input_string) * 2
+    assert len(result) == 32
 
 
 def test_string_to_hex_empty_string():

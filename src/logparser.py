@@ -1,11 +1,12 @@
 import argparse
-import sys
 from typing import List, Generator, NamedTuple, Tuple
 import json
 from pathlib import Path
 from tabulate import tabulate
 from collections import Counter, defaultdict
 from datetime import datetime
+from hashlib import md5
+from functools import lru_cache
 
 class Endpoint(NamedTuple):
     path  : str
@@ -18,9 +19,9 @@ def get_log_item(filename: str) -> Generator:
         for line in file:
             yield json.loads(line.strip())
 
-
+@lru_cache(maxsize=128)
 def get_key(url: str) -> str:
-    return url.encode('ascii').hex()
+    return md5(url.encode('ascii')).hexdigest()
 
 
 def generate_average_report(filenames: List[str],  date: str | None = None) -> List | None:
@@ -84,4 +85,4 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    main()
